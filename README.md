@@ -53,7 +53,7 @@ HarmonicSpectra converts audio waveforms into their component frequencies. It al
 ### 1. Installation
 
 ```bash
-cd ~/Desktop/Workspace/HarmonicSpectra
+cd ~/Desktop/Workspace/harmonic-spectra
 pip install -r requirements.txt
 ```
 
