@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HARMONIC SPECTRA // AUDIO ENGINEERING DECK</title>
+  <link rel="stylesheet" href="/static/style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="deck-container">
+    <!-- Top Deck Header -->
+    <header class="deck-header">
+      <div class="deck-branding">
+        <span class="rack-unit">UNIT-02</span>
+        <h1 class="deck-title">HARMONIC SPECTRA // DSP DECK</h1>
+        <span class="dsp-status" id="dsp-status-led">SYS_READY</span>
+      </div>
+      <div class="deck-controls-global">
+        <button id="mic-toggle-btn" class="deck-btn mode-btn">MICROPHONE_INPUT [OFF]</button>
+        <button id="play-tone-btn" class="deck-btn play-btn">AUDITION_SIGNAL</button>
+        <span class="sample-rate-pill">44.1 kHz // 24-BIT FLOAT</span>
+      </div>
+    </header>
+
+    <!-- Top Telemetry Metering Strip -->
+    <section class="metering-strip">
+      <div class="meter-module">
+        <div class="module-label">FUNDAMENTAL_PITCH (F0)</div>
+        <div class="module-value" id="disp-f0">440.00 Hz</div>
+        <div class="module-sub" id="disp-note">CONCERT PITCH: A4 (+0.0c)</div>
+      </div>
+
+      <div class="meter-module">
+        <div class="module-label">SPECTRAL_CENTROID</div>
+        <div class="module-value cyan-val" id="disp-centroid">1248.5 Hz</div>
+        <div class="module-sub">TIMBRAL BRIGHTNESS INDEX</div>
+      </div>
+
+      <div class="meter-module">
+        <div class="module-label">SPECTRAL_ROLLOFF (85%)</div>
+        <div class="module-value violet-val" id="disp-rolloff">3420.0 Hz</div>
+        <div class="module-sub">HIGH-FREQ ENERGY THRESHOLD</div>
+      </div>
+
+      <div class="meter-module">
+        <div class="module-label">WIENER_FLATNESS</div>
+        <div class="module-value" id="disp-flatness">0.0248</div>
+        <div class="module-sub" id="disp-noisiness">TONAL / HARMONIC PROMINENT</div>
+      </div>
+
+      <!-- Dual Master VU Meters -->
+      <div class="meter-module vu-module">
+        <div class="module-label">PEAK_DECIBEL_METER (L / R)</div>
+        <div class="vu-meter-rack">
+          <div class="vu-channel">
+            <div class="vu-bar-track"><div class="vu-bar-fill" id="vu-fill-l"></div></div>
+            <span class="vu-peak-text" id="vu-peak-l">-inf dB</span>
+          </div>
+          <div class="vu-channel">
+            <div class="vu-bar-track"><div class="vu-bar-fill" id="vu-fill-r"></div></div>
+            <span class="vu-peak-text" id="vu-peak-r">-inf dB</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Main Workspace Deck Grid -->
+    <main class="deck-main-grid">
+      <!-- Left Column: Primary Visual Readouts -->
+      <section class="visualizer-rack">
+        <!-- Frequency Spectrum Plot -->
+        <div class="rack-panel">
+          <div class="panel-rack-header">
+            <span class="panel-tag">// SPECTRUM_ANALYZER: FAST_FOURIER_TRANSFORM_MAGNITUDE (dBFS vs Hz)</span>
+            <span class="panel-tools">
+              <span class="freq-tag">20 Hz - 20 kHz</span>
+            </span>
+          </div>
+          <div class="canvas-box">
+            <canvas id="fft-canvas"></canvas>
+          </div>
+        </div>
+
+        <!-- Real-Time Time-Domain Oscilloscope -->
+        <div class="rack-panel">
+          <div class="panel-rack-header">
+            <span class="panel-tag">// TIME_DOMAIN: OSCILLOSCOPE_WAVEFORM</span>
+            <span class="panel-tools">
+              <span class="freq-tag">PERIOD: 2.27ms</span>
+            </span>
+          </div>
+          <div class="canvas-box osc-box">
+            <canvas id="osc-canvas"></canvas>
+          </div>
+        </div>
+
+        <!-- 2D / 3D Spectrogram Waterfall -->
+        <div class="rack-panel">
+          <div class="panel-rack-header">
+            <span class="panel-tag">// TIME_FREQUENCY: STFT_WATERFALL_SPECTROGRAM</span>
+          </div>
+          <div class="canvas-box waterfall-box">
+            <canvas id="spectrogram-canvas"></canvas>
+          </div>
+        </div>
+      </section>
+
+      <!-- Right Column: Synthesis & Harmonics Rack -->
+      <aside class="control-rack">
+        <!-- Signal Synthesis Rack -->
+        <div class="rack-panel">
+          <div class="panel-rack-header">
+            <span class="panel-tag">// PROCEDURAL_SIGNAL_GENERATOR</span>
+          </div>
+          <div class="synth-controls">
+            <div class="control-row">
+              <label>TIMBRE_SHAPE:</label>
+              <div class="timbre-btn-group">
+                <button class="timbre-btn active" data-wave="sawtooth">SAW</button>
+                <button class="timbre-btn" data-wave="square">SQR</button>
+                <button class="timbre-btn" data-wave="triangle">TRI</button>
+                <button class="timbre-btn" data-wave="sine">SIN</button>
+                <button class="timbre-btn" data-wave="organ">ORG</button>
+                <button class="timbre-btn" data-wave="chirp">SWP</button>
+              </div>
+            </div>
+
+            <!-- Precision Frequency Slider -->
+            <div class="slider-group">
+              <div class="slider-header">
+                <span>PITCH_FREQUENCY (Hz)</span>
+                <span class="slider-val" id="freq-readout">440.0 Hz</span>
+              </div>
+              <input type="range" id="freq-slider" min="55" max="1760" step="1" value="440" class="precision-slider">
+              <div class="slider-ticks">
+                <span>55Hz (A1)</span>
+                <span>220Hz (A3)</span>
+                <span>440Hz (A4)</span>
+                <span>880Hz (A5)</span>
+                <span>1760Hz (A6)</span>
+              </div>
+            </div>
+
+            <!-- FFT Size Selector -->
+            <div class="control-row">
+              <label>FFT_WINDOW_SIZE:</label>
+              <select id="fft-size-select" class="deck-select">
+                <option value="1024">1024 POINTS (FAST)</option>
+                <option value="2048" selected>2048 POINTS (PRECISION)</option>
+                <option value="4096">4096 POINTS (ULTRA)</option>
+              </select>
+            </div>
+
+            <!-- Windowing Function -->
+            <div class="control-row">
+              <label>WINDOW_FUNCTION:</label>
+              <select id="window-select" class="deck-select">
+                <option value="hann" selected>VON HANN</option>
+                <option value="hamming">HAMMING</option>
+                <option value="blackman">BLACKMAN (HIGH DYN)</option>
+                <option value="rectangular">RECTANGULAR (DIRICHLET)</option>
+              </select>
+            </div>
+
+            <button id="generate-btn" class="deck-btn full-btn">CALCULATE_FFT_DECOMPOSITION</button>
+          </div>
+        </div>
+
+        <!-- Harmonic Peak Detection Table -->
+        <div class="rack-panel">
+          <div class="panel-rack-header">
+            <span class="panel-tag">// HARMONIC_SERIES_OVERTONE_DECOMPOSITION</span>
+          </div>
+          <table class="harmonic-table">
+            <thead>
+              <tr>
+                <th>H#</th>
+                <th>RATIO</th>
+                <th>TARGET_HZ</th>
+                <th>ACTUAL_HZ</th>
+                <th>AMPLITUDE_dB</th>
+              </tr>
+            </thead>
+            <tbody id="harmonic-table-body">
+              <tr><td colspan="5" class="table-empty">AWAITING_SIGNAL</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Live Audio Log Stream -->
+        <div class="rack-panel console-panel">
+          <div class="panel-rack-header">
+            <span class="panel-tag">// DSP_CONSOLE_STREAM</span>
+          </div>
+          <div class="dsp-console-body" id="dsp-console">
+            <div class="log-line system">[INITIALIZE] HarmonicSpectra DSP engine calibrated. 44.1kHz / 2048-pt FFT.</div>
+          </div>
+        </div>
+      </aside>
+    </main>
+
+    <!-- Bottom Rack Mount Footer -->
+    <footer class="deck-footer">
+      <span>RACK: HARMONIC_SPECTRA_ENGINEERING_DECK</span>
+      <span>NYQUIST_LIMIT: 22.05 kHz</span>
+      <span>ALGORITHM: REAL_VALUED_COOLEY_TUKEY_FFT + PARABOLIC_INTERPOLATION</span>
+    </footer>
+  </div>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>
